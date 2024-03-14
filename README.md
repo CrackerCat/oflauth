@@ -5,26 +5,44 @@
 
 ### 项目结构：
 ├── LICENSE
+
 ├── README.md
+
 ├── admin_sample 生成授权码客户端
+
 ├── asserts 演示附件
+
 ├── build.gradle.kts
+
 ├── consumer_sample 验证授权码客户端
+
 ├── gradle
+
 ├── gradle.properties
+
 ├── gradlew
+
 ├── gradlew.bat
+
 ├── jitpack.yml
+
 ├── local.properties
+
 ├── mykeystore 客户端签名&演示用的 keystore 文件密码 123456
+
 ├── offline_authentication_library SDK 源码
+
 └── settings.gradle.kts
 
 ### asserts 附件说明：
 ├── AuthorizeCodeQrCode.png 生成授权码二维码图片
+
 ├── demo.json json配置
+
 ├── keystore.p12 从 mykeystore 中导出的 p12 文件
+
 ├── private_key.pem 从 p12 文件中导出的私钥
+
 └── signature.bin 签名信息
 
 ### 一. 背景：
