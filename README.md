@@ -1,6 +1,7 @@
 一套简单的离线（内网/无后台/纯单机）验证方法。consumer_sample用于演示校验认证码过程，admin_sampe用于演示管理员生成验证码。
 
 [![](https://jitpack.io/v/wpvsyou/oflauth.svg)](https://jitpack.io/#wpvsyou/oflauth)
+![Static Badge](https://img.shields.io/badge/License-MIT-blue?link=https%3A%2F%2Fgithub.com%2Fwpvsyou%2Foflauth%2Fblob%2Fmain%2FLICENSE)
 
 ### 一. 背景：
 当客户端在某些情况下需要离线给用户授权，或某些功能需要提前植入（硬编码到 Apk 中），但这些功能又仅想部分设备可用。或部分设备单次/某时间段儿可用（P1 阶段仅提供部分设备可用能力）。又或者 Apk 公测体验时，测试版本只针对部分设备开放授权。但 Apk发布出去后，谁都可以安装，无法控制安装。又不想为了简单的授权逻辑搭建一套复杂/昂贵的后台服务器进行注册/认证。那么此时就需要有一套技术/工具，能够实现 Android Apk 在离线的时候，也能验证设备的合法性（P1 阶段）以及有效次数和有效时间（P2 阶段）
