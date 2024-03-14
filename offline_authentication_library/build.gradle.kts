@@ -5,7 +5,7 @@ plugins {
 }
 
 group="com.dev2.wpvsyou"
-version="1.0.8"
+version="1.0.1"
 android {
     namespace = "com.dev2.offlineauthentication"
     compileSdk = 34
@@ -47,10 +47,8 @@ android {
                 create("release", MavenPublication::class) {
                     groupId = "com.dev2.wpvsyou"
                     artifactId = "offlineauthentication"
-                    version = "1.0.8"
+                    version = "1.0.1"
                     from(components["release"])
-
-                    //artifact("$buildDir/outputs/aar/${project.name}-release.aar")
                 }
             }
         }
