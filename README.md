@@ -3,6 +3,30 @@
 [![](https://jitpack.io/v/wpvsyou/oflauth.svg)](https://jitpack.io/#wpvsyou/oflauth)
 ![Static Badge](https://img.shields.io/badge/License-MIT-blue?link=https%3A%2F%2Fgithub.com%2Fwpvsyou%2Foflauth%2Fblob%2Fmain%2FLICENSE)
 
+### 项目结构：
+├── LICENSE
+├── README.md
+├── admin_sample 生成授权码客户端
+├── asserts 演示附件
+├── build.gradle.kts
+├── consumer_sample 验证授权码客户端
+├── gradle
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── jitpack.yml
+├── local.properties
+├── mykeystore 客户端签名&演示用的 keystore 文件密码 123456
+├── offline_authentication_library SDK 源码
+└── settings.gradle.kts
+
+### asserts 附件说明：
+├── AuthorizeCodeQrCode.png 生成授权码二维码图片
+├── demo.json json配置
+├── keystore.p12 从 mykeystore 中导出的 p12 文件
+├── private_key.pem 从 p12 文件中导出的私钥
+└── signature.bin 签名信息
+
 ### 一. 背景：
 当客户端在某些情况下需要离线给用户授权，或某些功能需要提前植入（硬编码到 Apk 中），但这些功能又仅想部分设备可用。或部分设备单次/某时间段儿可用（P1 阶段仅提供部分设备可用能力）。又或者 Apk 公测体验时，测试版本只针对部分设备开放授权。但 Apk发布出去后，谁都可以安装，无法控制安装。又不想为了简单的授权逻辑搭建一套复杂/昂贵的后台服务器进行注册/认证。那么此时就需要有一套技术/工具，能够实现 Android Apk 在离线的时候，也能验证设备的合法性（P1 阶段）以及有效次数和有效时间（P2 阶段）
  注：这里说的离线，是指 Apk 从安装使用开始就不需要调用任何网络接口，纯本地 Apk。
@@ -13,7 +37,24 @@
 之后客户端使用自身公钥进行验签（因为客户端 Apk 是使用管理员/开发者自己创建的 keystore 文件签名的，所以私钥在管理员/开发者手中）并校验原材料是否正确来达到验证的目的。
 ### 三. 客户端使用过程简介：
 
-1. 客户端通过 SDK 中 verify 接口来验证本地本地验证码是否正确
+1. 导入依赖：
+```kotlin
+//1. 在根目录settings.gradle.kt或build.gradle.kt中增加jitpack.io maven库配置
+dependencyResolutionManagement {
+		repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+		repositories {
+			mavenCentral()
+			maven { url 'https://jitpack.io' }
+		}
+	}
+
+//2. 在具体项目中依赖oflauth aar包
+dependencies {
+	        implementation 'com.github.wpvsyou:oflauth:v1.0.1'
+	}
+```
+
+2. 客户端通过 SDK 中 verify 接口来验证本地本地验证码是否正确
 ```kotlin
 val offlineAuthentication: OfflineAuthentication by lazy {
     OfflineAuthentication.Builder().build()
@@ -21,7 +62,7 @@ val offlineAuthentication: OfflineAuthentication by lazy {
 val s: Status = offlineAuthentication.verify()
 ```
 
-2. 其中 Status 为状态枚举
+3. 其中 Status 为状态枚举
 
 | No. | Status | 含义 |
 | --- | --- | --- |
@@ -29,7 +70,7 @@ val s: Status = offlineAuthentication.verify()
 | 2 | ILLEGAL_AUTHORIZATION_CODE | 本地存在非法的认证码，可能已过期（P2 阶段）或认证码错误 |
 | 3 | PASS | 认证通过 |
 
-3. 客户端上先通过 SDK 工具获取到客户端的唯一标识id：
+4. 客户端上先通过 SDK 工具获取到客户端的唯一标识id：
 ```kotlin
 val offlineAuthentication: OfflineAuthentication by lazy {
     OfflineAuthentication.Builder().build()
@@ -37,16 +78,16 @@ val offlineAuthentication: OfflineAuthentication by lazy {
 val id：String = offlineAuthentication.identityNumber
 ```
 
-4. 将客户端上的 id 告知给管理员
-5. 管理员使用 id 生成json配置文件（文件可从项目目录中下载），再对 json 文件的 md5 值进行签名。签名后将签名值(string字符串)进行 base64 编码，并将编码值添加到 json 配置文件中signature字段的值中。（该过程可参考“四. Linux/Macos命令行中，使用 KeyStore 文件生成离线验证码”章节的描述）
-6. 最后将这个 json 配置文件的内容发给客户端用户验证。（推荐通过二维码传递）
+5. 将客户端上的 id 告知给管理员
+6. 管理员使用 id 生成json配置文件（文件可从项目目录中下载），再对 json 文件的 md5 值进行签名。签名后将签名值(string字符串)进行 base64 编码，并将编码值添加到 json 配置文件中signature字段的值中。（该过程可参考“四. Linux/Macos命令行中，使用 KeyStore 文件生成离线验证码”章节的描述）
+7. 最后将这个 json 配置文件的内容发给客户端用户验证。（推荐通过二维码传递）
 ```kotlin
 //其中 result 为二维码解析后的 String 串。
 val s = offlineAuthentication.verify(
     offlineAuthentication.parser.deserialization(result)
 )
 ```
-### 四. Linux/Macos 命令行中，使用 KeyStore 文件生成离线验证码：
+### 四. Linux/Macos 命令行中，使用 KeyStore 文件生成离线验证码：（通过Android应用生成授权码请看第五章）
 
 1. 先将使用 keytool 命令将 keystore 转成 p12 文件。其中 app_key 是给 app 做签名的 keystore 文件（可由 AndroidStudio 生成，也可由命令行手动创建），keystore.p12 是将要生成的 p12 文件，key0 是 app_key keystore 中 RSA 密钥对的别名，是在创建 keystore 文件时指定的。当然还有 keystore 的密码，别名下密钥对的密码，这些都是在生成 keystore，生成密钥对时配置的。
 ```shell
@@ -143,3 +184,38 @@ JyJCIUc/jlKGCZvoenLqQa0yaXw1jtv60Vx0d3LjLFsI41gDEKtSbant5vvafzlHSGDVZbcW/hBLENW2
 cat demo.json | qr > AuthorizeCodeQrCode.png
 ```
  ![1.png](https://cdn.nlark.com/yuque/0/2024/png/39006166/1709539827875-29359674-4dc9-461d-929f-fc598baefe92.png#averageHue=%23939393&clientId=uc730ba08-9743-4&from=drop&id=u2984fd7a&originHeight=930&originWidth=930&originalType=binary&ratio=1&rotation=0&showTitle=false&size=3435&status=done&style=none&taskId=ue4bb4419-cbd1-46cd-bec4-69ad6fa0f34&title=)
+
+### 五. 从客户端生成授权码二维码并交由客户端验证
+
+1. 先将PEM格式私钥转成DER格式。
+
+```shell
+openssl rsa -in private_key.pem -outform DER -out private_key.der
+```
+
+2. 将 DER 格式的私钥 push 到手机中，并由程序加载至内存。
+
+3. 用需要授权码授权的客户端生成的 identityNumber 去组装一个 AuthorizeCodeBean 对象并计算其 md5 值
+
+```kotlin
+val b = AuthorizeCodeBean(id, -1, -1, "", -1)
+val m = offlineAuthentication.md5(offlineAuthentication.parser.serialize(b))
+```
+
+4. 通过 signString 接口，对 md5 进行签名
+
+```kotlin
+b.signature = offlineAuthentication.signString(m, privateKey).toString()
+``` 
+
+5. 最后将 AuthorizeCodeBean 对象序列化后传递给授权码授权的客户端进行验证即可。
+
+### 六. DEMO:
+
+1. 通过App演示授权码生成过程：
+
+![1710410560868.gif](https://cdn.nlark.com/yuque/0/2024/gif/39006166/1710410628584-159eae0f-3196-4ea4-ac5e-a72ca7c24347.gif#averageHue=%23e3e2e2&clientId=u9bbc7acf-c467-4&from=drop&id=u8f73162a&originHeight=494&originWidth=240&originalType=binary&ratio=1&rotation=0&showTitle=false&size=5844375&status=done&style=none&taskId=u709e945e-612f-4edd-b18e-b9d05f86b37&title=)
+
+2. 客户端验证授权码过程演示：
+
+![1710410734519.gif](https://cdn.nlark.com/yuque/0/2024/gif/39006166/1710410773335-ce6e9dfc-8203-4de4-9843-ffc825720e66.gif#averageHue=%23bcbbbe&clientId=u9bbc7acf-c467-4&from=drop&id=u4532fc53&originHeight=426&originWidth=240&originalType=binary&ratio=1&rotation=0&showTitle=false&size=2299570&status=done&style=none&taskId=uf8b4746b-a07b-494b-98c1-ef72b4a2edb&title=)
