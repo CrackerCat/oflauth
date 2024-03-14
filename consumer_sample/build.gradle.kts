@@ -60,8 +60,7 @@ android {
 
 dependencies {
     //关键依赖
-    implementation(project(":offline_authentication_library"))
-//    implementation("com.github.wpvsyou:offlineauthentication:1.0.1")
+    implementation("com.github.wpvsyou:oflauth:v1.0.1")
     implementation("com.google.code.gson:gson:2.10.1")
 
     //sample
